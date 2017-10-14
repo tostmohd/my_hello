@@ -1,0 +1,165 @@
+# -*- coding: utf-8 -*-
+
+from openerp import api, fields, models, _
+import dateutil.parser as parser
+from dateutil.relativedelta import relativedelta
+from datetime import date,datetime
+
+
+
+
+
+class OfficeManagement(models.Model):
+    _name = 'patient.patient'
+    _description = 'Patient Details'
+    
+    medicine_ids = fields.One2many('test.test','patient1',string="Medicines",required = True )
+    doctor_id=fields.Many2one('doctor.doctor',string="Consulting doctor")
+    name = fields.Char(string='Patient name',size=32)
+    dob =fields.Date('Date of Birth')
+    doctor = fields.Char(string='Hospital Name')
+    address = fields.Text(string='Address')
+    phone = fields.Char(string='Phone Number')
+    age = fields.Char(string="Age")
+    month = fields.Char(string='months')
+    gender = fields.Selection([('m','M'),('f','F')],string='Sex')
+    
+    #number = fields.integer(string="Number of Visit")
+
+    
+    #@api.depends('dob')
+    #def _age_cal(self):
+      #  print "self-------------------->>",self
+       # for patiant in self:
+         #   if patiant.dob:
+           #     print "ssssssssssss",patiant.dob
+              #  age_cal=parser.parse(patiant.dob).year
+              #  age_mnth=parser.parser(patiant.dob).month
+              #  year = datetime.datetime.now().year
+             #   print 'month......', age_mnth
+              #  patiant.age = year-age_cal 
+    @api.onchange('dob')  
+    def _age_val(self):
+        for rec in self:
+       #    print "asdsdddddddd",self
+            if rec.dob:
+                print"dfdfdfdsf"
+                dt = rec.dob
+                print dt,'yyyyyyyyyyyyyyyyyyyyyy'
+                d1 = datetime.strptime(dt, "%Y-%m-%d").date()
+                print d1,'aaaaaaaaaaaaaaaas'
+                #d3 = datetime.striptime(dt, '%Y-%m-%d')
+                d2 = date.today()
+                print d2,"ttttttttttttttttttttttttttttt"
+                #d4 = datetime.striptime(d2, '%Y-%m-%d')
+                #r = relativedelta.relativedelta(d4, d1)
+                print "dfdsfdsf"
+                #rec.month=r
+                print d2,'ttttttttttttttttttttttttttt'
+                rd = relativedelta(d2, d1)
+                rec.month = rd.months
+            
+                print 'mmmonnth',rec.month
+                rec.age = rd.years
+class Medicines(models.Model):
+    _name='medicine.medicine'
+    _description = "patient's Medicine details"
+    
+    #med_ids = fields.One2many('test.test','medicine_id',string='Medicines')
+    name=fields.Char(string="Medicine's")
+    price=fields.Float(string='Price')
+    sell_price=fields.Float(compute='_SellPrice',string='Selling price')
+    price_id = fields.Many2one('test.test',string='Medicine')
+    
+    @api.depends('price')
+    def _SellPrice(self):
+        print self,"ASASSASASASASASASASASSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSASASA"
+        self.sell_price=self.price*120/100
+        
+    
+    
+
+    
+    
+class Medicines2(models.Model):
+    _name='test.test' 
+    _description='testing one2many'
+    
+    medicine_id=fields.Many2one('medicine.medicine',string="Medicine's")
+    description = fields.Char('description')
+    date = fields.Date(string='Date')
+    patient1=fields.Many2one('patient.patient',string="patient")
+    quality=fields.Integer('Ordered Quality')
+    price_cal=fields.Float('Price')
+    
+    @api.one
+    @api.onchange('medicine_id')
+    def onchange_medicine_id(self):
+            self.price_cal = self.medicine_id.price
+        
+    
+class StaffDuty(models.Model):
+    _name='staff.duty'
+    _description='Staff Duty'
+    _rec_name = "staff_id"
+    #name = fields.Char(string="Name")
+    staff_id = fields.Many2one('staff.staff',string='Staff')
+    doctr_id = fields.Many2one('doctor.doctor',string='Doctor')
+    idn = fields.Char(string='ID No:')
+    dept = fields.Selection([('a','Administration'),('b','Safety'),('c','Nurse'),('d','Technical'),('e','Doctor')],string='Department',required = True)
+    duty_detail_ids = fields.One2many('duty.deatils','staffduty_id','Duty Details',required = True)
+    fir_date=fields.Date(string='First Date')
+    sec_date=fields.Date(string='second date')
+    a=[]
+    @api.onchange('fir_date','sec_date')
+    def _date_val(self):
+        #for rec in self:
+       #    print "asdsdddddddd",self
+        if self.fir_date:
+            if self.sec_date:
+                print 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+                dr = self.fir_date
+                print 'fdfddfdfffddfffffffffffffffffffffffffffffffdf',dr
+                d_1 = datetime.strptime(dr, "%Y-%m-%d").days()
+                print 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',d_1
+                
+                d_2 = self.sec_date
+                print 'ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc',d_2
+                d_3 = datetime.strptime(d_2,"%Y-%m-%d").days()
+             
+                print 'ddddddddddddddddddddddddddddddddddddddddddddddddddddd',d_3 
+                #rd = relativedelta(d_3, d_1)
+                print 'eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee'
+                #dte= rd.days
+                print 'fffffffffffffffffffffffffffffffffffffffffffffff'
+               
+    print a    
+    
+    
+class DutyDetails(models.Model):
+    _name = 'duty.deatils'
+    _description = 'Duty Details'
+    _rec_name = 'staffduty_id'
+    #name=fields.Char(string='Name')
+    date=fields.Date(string='Date')
+    #fir_date=fields.Date(string='First Date')
+    #sec_date=fields.Date(string='second date')
+    #duty_type=fields.Selection([('a','Operation theatre'),('b','Casuality'),('c','OP'),('d','Administration'),('e',Lab Duty)])       
+    duty_id = fields.Many2one('duty.list',string='Duty')
+    intime = fields.Datetime(string='Start time')
+    outtime = fields.Datetime(string='End time')
+    staffduty_id = fields.Many2one('staff.duty',string ="Details")
+    details = fields.Text(string='Details')
+    doctor_id = fields.Many2one('doctor.doctor', string='Doctor')
+    #a=[]
+    
+              
+            
+               
+    
+class DutyList(models.Model):
+        
+        _name='duty.list'
+        _description = 'List of duties'
+        
+        name=fields.Char(string='Duty',required = True)
